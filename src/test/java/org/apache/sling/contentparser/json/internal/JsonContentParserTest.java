@@ -29,7 +29,8 @@ import org.apache.sling.contentparser.api.ContentParser;
 import org.apache.sling.contentparser.api.JsonParserFeature;
 import org.apache.sling.contentparser.api.ParseException;
 import org.apache.sling.contentparser.api.ParserOptions;
-import org.apache.sling.contentparser.json.internal.mapsupport.ContentElement;
+import org.apache.sling.contentparser.testutils.TestUtils;
+import org.apache.sling.contentparser.testutils.mapsupport.ContentElement;
 import org.junit.Before;
 import org.junit.Test;
 
