@@ -29,9 +29,9 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.sling.contentparser.api.ContentParser;
-import org.apache.sling.contentparser.api.JsonParserFeature;
 import org.apache.sling.contentparser.api.ParseException;
-import org.apache.sling.contentparser.api.ParserOptions;
+import org.apache.sling.contentparser.json.JSONParserFeature;
+import org.apache.sling.contentparser.json.JSONParserOptions;
 import org.apache.sling.contentparser.testutils.TestUtils;
 import org.apache.sling.contentparser.testutils.mapsupport.ContentElement;
 import org.junit.Before;
@@ -42,7 +42,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class JsonContentParserTest {
+public class JSONContentParserTest {
 
     private File file;
     private ContentParser contentParser;
@@ -50,19 +50,19 @@ public class JsonContentParserTest {
     @Before
     public void setUp() {
         file = new File("src/test/resources/content-test/content.json");
-        contentParser = new JsonContentParser();
+        contentParser = new JSONContentParser();
     }
 
     @Test
     public void testPageJcrPrimaryType() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, file);
+        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions(), file);
 
         assertEquals("app:Page", content.getProperties().get("jcr:primaryType"));
     }
 
     @Test
     public void testDataTypes() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, file);
+        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions(), file);
         ContentElement child = content.getChild("toolbar/profiles/jcr:content");
         assertNotNull("Expected child at toolbar/profiles/jcr:content", child);
         Map<String, Object> props = child.getProperties();
@@ -79,7 +79,7 @@ public class JsonContentParserTest {
 
     @Test
     public void testContentProperties() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, file);
+        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions(), file);
         ContentElement child = content.getChild("jcr:content/header");
         assertNotNull("Expected child at jcr:content/header", child);
         Map<String, Object> props = child.getProperties();
@@ -88,7 +88,7 @@ public class JsonContentParserTest {
 
     @Test
     public void testCalendar() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, new ParserOptions().detectCalendarValues(true), file);
+        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions().detectCalendarValues(true), file);
         ContentElement child = content.getChild("jcr:content");
         assertNotNull("Expected child at jcr:content", child);
         Map<String, Object> props = child.getProperties();
@@ -109,7 +109,7 @@ public class JsonContentParserTest {
 
     @Test
     public void testIso8601Calendar() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, new ParserOptions().detectCalendarValues(true), file);
+        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions().detectCalendarValues(true), file);
         ContentElement child = content.getChild("jcr:content");
         assertNotNull("Expected child at jcr:content", child);
         Map<String, Object> props = child.getProperties();
@@ -128,7 +128,7 @@ public class JsonContentParserTest {
 
     @Test
     public void testUTF8Chars() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, file);
+        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions(), file);
         ContentElement child = content.getChild("jcr:content");
         assertNotNull("Expected child at jcr:content", child);
         Map<String, Object> props = child.getProperties();
@@ -154,7 +154,7 @@ public class JsonContentParserTest {
     public void testIgnoreResourcesProperties() throws Exception {
         ContentElement content = TestUtils.parse(
                 contentParser,
-                new ParserOptions().ignoreResourceNames(Collections
+                new JSONParserOptions().ignoreResourceNames(Collections
                         .unmodifiableSet(new HashSet<>(Arrays.asList("header", "newslist", "security:acl", "security:principals"))))
                         .ignorePropertyNames(Collections.unmodifiableSet(new HashSet<>(Arrays.asList("jcr:title")))), file);
         ContentElement child = content.getChild("jcr:content");
@@ -172,7 +172,7 @@ public class JsonContentParserTest {
 
     @Test
     public void testGetChild() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, file);
+        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions(), file);
         assertNull(content.getName());
         ContentElement deepChild = content.getChild("jcr:content/par/image/file/jcr:content");
         assertNotNull("Expected child at jcr:content/par/image/file/jcr:content", deepChild);
@@ -188,7 +188,7 @@ public class JsonContentParserTest {
 
     @Test(expected = ParseException.class)
     public void testFailsWithoutCommentsEnabled() throws Exception {
-        TestUtils.parse(contentParser, new ParserOptions().jsonParserFeatures(EnumSet.noneOf(JsonParserFeature.class)), file);
+        TestUtils.parse(contentParser, new JSONParserOptions().withFeatures(EnumSet.noneOf(JSONParserFeature.class)), file);
     }
 
 }
