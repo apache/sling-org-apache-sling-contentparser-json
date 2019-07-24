@@ -19,6 +19,7 @@
 package org.apache.sling.contentparser.json.internal;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -29,7 +30,6 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.sling.contentparser.api.ContentParser;
-import org.apache.sling.contentparser.api.ParseException;
 import org.apache.sling.contentparser.json.JSONParserFeature;
 import org.apache.sling.contentparser.json.JSONParserOptions;
 import org.apache.sling.contentparser.testutils.TestUtils;
@@ -136,14 +136,14 @@ public class JSONContentParserTest {
         assertEquals("äöüß€", props.get("utf8Property"));
     }
 
-    @Test(expected = ParseException.class)
+    @Test(expected = IOException.class)
     public void testParseInvalidJson() throws Exception {
         file = new File("src/test/resources/invalid-test/invalid.json");
         ContentElement content = TestUtils.parse(contentParser, file);
         assertNull(content);
     }
 
-    @Test(expected = ParseException.class)
+    @Test(expected = IOException.class)
     public void testParseInvalidJsonWithObjectList() throws Exception {
         file = new File("src/test/resources/invalid-test/contentWithObjectList.json");
         ContentElement content = TestUtils.parse(contentParser, file);
@@ -186,9 +186,34 @@ public class JSONContentParserTest {
         assertNull(invalidChild);
     }
 
-    @Test(expected = ParseException.class)
+    @Test
+    public void testGetChildFromJsonWithTicks() throws Exception {
+        File jsonWithTicks = file = new File("src/test/resources/content-test/content-ticks.json");
+        ContentElement content = TestUtils
+                .parse(contentParser, new JSONParserOptions().withFeatures(JSONParserFeature.COMMENTS, JSONParserFeature.QUOTE_TICK),
+                        jsonWithTicks);
+        assertNull(content.getName());
+        ContentElement deepChild = content.getChild("jcr:content/par/image/file/jcr:content");
+        assertNotNull("Expected child at jcr:content/par/image/file/jcr:content", deepChild);
+        assertEquals("jcr:content", deepChild.getName());
+        assertEquals("nt:resource", deepChild.getProperties().get("jcr:primaryType"));
+
+        ContentElement invalidChild = content.getChild("non/existing/path");
+        assertNull(invalidChild);
+
+        invalidChild = content.getChild("/jcr:content");
+        assertNull(invalidChild);
+    }
+
+    @Test(expected = IOException.class)
     public void testFailsWithoutCommentsEnabled() throws Exception {
         TestUtils.parse(contentParser, new JSONParserOptions().withFeatures(EnumSet.noneOf(JSONParserFeature.class)), file);
+    }
+
+    @Test(expected = IOException.class)
+    public void testInvalidJsonWithTicks() throws Exception {
+        TestUtils.parse(contentParser, new JSONParserOptions().withFeatures(EnumSet.noneOf(JSONParserFeature.class)), new File("src/test" +
+                "/resources/content-test/invalid-ticks.json"));
     }
 
 }

@@ -42,7 +42,6 @@ import javax.json.stream.JsonParsingException;
 import org.apache.commons.io.IOUtils;
 import org.apache.sling.contentparser.api.ContentHandler;
 import org.apache.sling.contentparser.api.ContentParser;
-import org.apache.sling.contentparser.api.ParseException;
 import org.apache.sling.contentparser.api.ParserHelper;
 import org.apache.sling.contentparser.api.ParserOptions;
 import org.apache.sling.contentparser.json.JSONParserFeature;
@@ -56,8 +55,10 @@ import org.osgi.service.component.annotations.Component;
 )
 public class JSONContentParser implements ContentParser {
 
+    private static final String JOHNZON_SUPPORT_COMMENTS = "org.apache.johnzon.supports-comments";
+
     @Override
-    public void parse(ContentHandler handler, InputStream is, ParserOptions parserOptions) throws ParseException {
+    public void parse(ContentHandler handler, InputStream is, ParserOptions parserOptions) throws IOException {
         final boolean jsonQuoteTicks;
         final boolean supportComments;
         if (parserOptions instanceof JSONParserOptions) {
@@ -74,33 +75,28 @@ public class JSONContentParser implements ContentParser {
          * JsonParser Stream API because otherwise it would not be possible to report parent resources
          * including all properties properly before their children.
          */
-        final JsonReaderFactory jsonReaderFactory =
-                Json.createReaderFactory(
-                        supportComments ?
-                                new HashMap<String, Object>() {{
-                                    put("org.apache.johnzon.supports-comments", true);
-                                }} :
-                                Collections.emptyMap()
-                );
+        Map<String, Object> jsonReaderFactoryConfiguration;
+        if (supportComments) {
+            jsonReaderFactoryConfiguration = new HashMap<>();
+            jsonReaderFactoryConfiguration.put(JOHNZON_SUPPORT_COMMENTS, true);
+        } else {
+            jsonReaderFactoryConfiguration = Collections.emptyMap();
+        }
+        final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(jsonReaderFactoryConfiguration);
         JsonObject jsonObject = jsonQuoteTicks ? toJsonObjectWithJsonTicks(jsonReaderFactory, is) : toJsonObject(jsonReaderFactory, is);
         parse(handler, jsonObject, parserOptions, "/");
     }
 
-    private JsonObject toJsonObject(JsonReaderFactory jsonReaderFactory, InputStream is) {
+    private JsonObject toJsonObject(JsonReaderFactory jsonReaderFactory, InputStream is) throws IOException {
         try (JsonReader reader = jsonReaderFactory.createReader(is)) {
             return reader.readObject();
         } catch (JsonParsingException ex) {
-            throw new ParseException("Error parsing JSON content: " + ex.getMessage(), ex);
+            throw new IOException("Error parsing JSON content.", ex);
         }
     }
 
-    private JsonObject toJsonObjectWithJsonTicks(JsonReaderFactory jsonReaderFactory, InputStream is) {
-        String jsonString;
-        try {
-            jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
-        } catch (IOException ex) {
-            throw new ParseException("Error getting JSON string.", ex);
-        }
+    private JsonObject toJsonObjectWithJsonTicks(JsonReaderFactory jsonReaderFactory, InputStream is) throws IOException {
+        String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
 
         // convert ticks to double quotes
         jsonString = JSONTicksConverter.tickToDoubleQuote(jsonString);
@@ -108,11 +104,11 @@ public class JSONContentParser implements ContentParser {
         try (JsonReader reader = jsonReaderFactory.createReader(new StringReader(jsonString))) {
             return reader.readObject();
         } catch (JsonParsingException ex) {
-            throw new ParseException("Error parsing JSON content: " + ex.getMessage(), ex);
+            throw new IOException("Error parsing JSON content.", ex);
         }
     }
 
-    private void parse(ContentHandler handler, JsonObject object, ParserOptions parserOptions, String path) {
+    private void parse(ContentHandler handler, JsonObject object, ParserOptions parserOptions, String path) throws IOException {
         // parse JSON object
         Map<String, Object> properties = new HashMap<>();
         Map<String, JsonObject> children = new LinkedHashMap<>();
@@ -122,12 +118,12 @@ public class JSONContentParser implements ContentParser {
             boolean ignore = false;
             try {
                 value = convertValue(parserOptions, entry.getValue());
-            } catch (ParseException ex) {
+            } catch (IllegalArgumentException ex) {
                 if (parserOptions.getIgnoreResourceNames().contains(childName) || parserOptions.getIgnorePropertyNames()
                         .contains(removePrefixFromPropertyName(parserOptions.getRemovePropertyNamePrefixes(), childName))) {
                     ignore = true;
                 } else {
-                    throw ex;
+                    throw new IOException(ex);
                 }
             }
             boolean isResource = (value instanceof JsonObject);
@@ -154,10 +150,8 @@ public class JSONContentParser implements ContentParser {
             }
         }
         String defaultPrimaryType = parserOptions.getDefaultPrimaryType();
-        if (defaultPrimaryType != null) {
-            if (!properties.containsKey("jcr:primaryType")) {
-                properties.put("jcr:primaryType", defaultPrimaryType);
-            }
+        if (defaultPrimaryType != null && !properties.containsKey("jcr:primaryType")) {
+            properties.put("jcr:primaryType", defaultPrimaryType);
         }
 
         // report current JSON object
@@ -204,7 +198,7 @@ public class JSONContentParser implements ContentParser {
             case OBJECT:
                 return value;
             default:
-                throw new ParseException("Unexpected JSON value type: " + value.getValueType());
+                throw new IllegalArgumentException("Unexpected JSON value type: " + value.getValueType());
         }
     }
 
