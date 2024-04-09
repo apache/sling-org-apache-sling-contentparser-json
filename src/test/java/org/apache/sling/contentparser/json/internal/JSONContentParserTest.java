@@ -1,21 +1,21 @@
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- ~ Licensed to the Apache Software Foundation (ASF) under one
- ~ or more contributor license agreements.  See the NOTICE file
- ~ distributed with this work for additional information
- ~ regarding copyright ownership.  The ASF licenses this file
- ~ to you under the Apache License, Version 2.0 (the
- ~ "License"); you may not use this file except in compliance
- ~ with the License.  You may obtain a copy of the License at
- ~
- ~   http://www.apache.org/licenses/LICENSE-2.0
- ~
- ~ Unless required by applicable law or agreed to in writing,
- ~ software distributed under the License is distributed on an
- ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- ~ KIND, either express or implied.  See the License for the
- ~ specific language governing permissions and limitations
- ~ under the License.
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.sling.contentparser.json.internal;
 
 import java.io.File;
@@ -72,9 +72,10 @@ public class JSONContentParserTest {
         assertEquals(new BigDecimal("1.2345"), props.get("decimalProp"));
         assertEquals(true, props.get("booleanProp"));
 
-        assertArrayEquals(new Long[]{1234567890123L, 55L}, (Long[]) props.get("longPropMulti"));
-        assertArrayEquals(new BigDecimal[]{new BigDecimal("1.2345"), new BigDecimal("1.1")}, (BigDecimal[]) props.get("decimalPropMulti"));
-        assertArrayEquals(new Boolean[]{true, false}, (Boolean[]) props.get("booleanPropMulti"));
+        assertArrayEquals(new Long[] {1234567890123L, 55L}, (Long[]) props.get("longPropMulti"));
+        assertArrayEquals(new BigDecimal[] {new BigDecimal("1.2345"), new BigDecimal("1.1")}, (BigDecimal[])
+                props.get("decimalPropMulti"));
+        assertArrayEquals(new Boolean[] {true, false}, (Boolean[]) props.get("booleanPropMulti"));
     }
 
     @Test
@@ -88,7 +89,8 @@ public class JSONContentParserTest {
 
     @Test
     public void testCalendar() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions().detectCalendarValues(true), file);
+        ContentElement content =
+                TestUtils.parse(contentParser, new JSONParserOptions().detectCalendarValues(true), file);
         ContentElement child = content.getChild("jcr:content");
         assertNotNull("Expected child at jcr:content", child);
         Map<String, Object> props = child.getProperties();
@@ -109,7 +111,8 @@ public class JSONContentParserTest {
 
     @Test
     public void testIso8601Calendar() throws Exception {
-        ContentElement content = TestUtils.parse(contentParser, new JSONParserOptions().detectCalendarValues(true), file);
+        ContentElement content =
+                TestUtils.parse(contentParser, new JSONParserOptions().detectCalendarValues(true), file);
         ContentElement child = content.getChild("jcr:content");
         assertNotNull("Expected child at jcr:content", child);
         Map<String, Object> props = child.getProperties();
@@ -154,9 +157,11 @@ public class JSONContentParserTest {
     public void testIgnoreResourcesProperties() throws Exception {
         ContentElement content = TestUtils.parse(
                 contentParser,
-                new JSONParserOptions().ignoreResourceNames(Collections
-                        .unmodifiableSet(new HashSet<>(Arrays.asList("header", "newslist", "security:acl", "security:principals"))))
-                        .ignorePropertyNames(Collections.unmodifiableSet(new HashSet<>(Arrays.asList("jcr:title")))), file);
+                new JSONParserOptions()
+                        .ignoreResourceNames(Collections.unmodifiableSet(new HashSet<>(
+                                Arrays.asList("header", "newslist", "security:acl", "security:principals"))))
+                        .ignorePropertyNames(Collections.unmodifiableSet(new HashSet<>(Arrays.asList("jcr:title")))),
+                file);
         ContentElement child = content.getChild("jcr:content");
         assertNotNull("Expected child at jcr:content", child);
         assertEquals("Sample Homepage", child.getProperties().get("pageTitle"));
@@ -189,9 +194,10 @@ public class JSONContentParserTest {
     @Test
     public void testGetChildFromJsonWithTicks() throws Exception {
         File jsonWithTicks = file = new File("src/test/resources/content-test/content-ticks.json");
-        ContentElement content = TestUtils
-                .parse(contentParser, new JSONParserOptions().withFeatures(JSONParserFeature.COMMENTS, JSONParserFeature.QUOTE_TICK),
-                        jsonWithTicks);
+        ContentElement content = TestUtils.parse(
+                contentParser,
+                new JSONParserOptions().withFeatures(JSONParserFeature.COMMENTS, JSONParserFeature.QUOTE_TICK),
+                jsonWithTicks);
         assertNull(content.getName());
         ContentElement deepChild = content.getChild("jcr:content/par/image/file/jcr:content");
         assertNotNull("Expected child at jcr:content/par/image/file/jcr:content", deepChild);
@@ -207,13 +213,15 @@ public class JSONContentParserTest {
 
     @Test(expected = IOException.class)
     public void testFailsWithoutCommentsEnabled() throws Exception {
-        TestUtils.parse(contentParser, new JSONParserOptions().withFeatures(EnumSet.noneOf(JSONParserFeature.class)), file);
+        TestUtils.parse(
+                contentParser, new JSONParserOptions().withFeatures(EnumSet.noneOf(JSONParserFeature.class)), file);
     }
 
     @Test(expected = IOException.class)
     public void testInvalidJsonWithTicks() throws Exception {
-        TestUtils.parse(contentParser, new JSONParserOptions().withFeatures(EnumSet.noneOf(JSONParserFeature.class)), new File("src/test" +
-                "/resources/content-test/invalid-ticks.json"));
+        TestUtils.parse(
+                contentParser,
+                new JSONParserOptions().withFeatures(EnumSet.noneOf(JSONParserFeature.class)),
+                new File("src/test" + "/resources/content-test/invalid-ticks.json"));
     }
-
 }
