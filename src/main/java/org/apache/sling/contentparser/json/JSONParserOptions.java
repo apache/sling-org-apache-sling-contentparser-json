@@ -18,8 +18,6 @@
  */
 package org.apache.sling.contentparser.json;
 
-import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.Set;
 
 import org.apache.sling.contentparser.api.ParserOptions;
@@ -46,18 +44,18 @@ public final class JSONParserOptions extends ParserOptions {
      * @return this
      */
     public JSONParserOptions withFeatures(Set<JSONParserFeature> value) {
-        this.features = EnumSet.copyOf(value);
+        this.features = Set.copyOf(value);
         return this;
     }
 
     /**
      * Set the features the JSON parser should apply when parsing files.
      *
-     * @param value JSON parser features
+     * @param values JSON parser features
      * @return this
      */
-    public JSONParserOptions withFeatures(JSONParserFeature... value) {
-        this.features = EnumSet.copyOf(Arrays.asList(value));
+    public JSONParserOptions withFeatures(JSONParserFeature... values) {
+        this.features = Set.of(values);
         return this;
     }
 
