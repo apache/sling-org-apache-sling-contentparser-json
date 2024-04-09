@@ -1,21 +1,21 @@
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- ~ Licensed to the Apache Software Foundation (ASF) under one
- ~ or more contributor license agreements.  See the NOTICE file
- ~ distributed with this work for additional information
- ~ regarding copyright ownership.  The ASF licenses this file
- ~ to you under the Apache License, Version 2.0 (the
- ~ "License"); you may not use this file except in compliance
- ~ with the License.  You may obtain a copy of the License at
- ~
- ~   http://www.apache.org/licenses/LICENSE-2.0
- ~
- ~ Unless required by applicable law or agreed to in writing,
- ~ software distributed under the License is distributed on an
- ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- ~ KIND, either express or implied.  See the License for the
- ~ specific language governing permissions and limitations
- ~ under the License.
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.sling.contentparser.json.internal;
 
 import java.io.IOException;
@@ -38,7 +38,6 @@ import jakarta.json.JsonReaderFactory;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.json.stream.JsonParsingException;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.sling.contentparser.api.ContentHandler;
 import org.apache.sling.contentparser.api.ContentParser;
@@ -48,11 +47,7 @@ import org.apache.sling.contentparser.json.JSONParserFeature;
 import org.apache.sling.contentparser.json.JSONParserOptions;
 import org.osgi.service.component.annotations.Component;
 
-@Component(
-        property = {
-                ContentParser.SERVICE_PROPERTY_CONTENT_TYPE + "=json"
-        }
-)
+@Component(property = {ContentParser.SERVICE_PROPERTY_CONTENT_TYPE + "=json"})
 public class JSONContentParser implements ContentParser {
 
     private static final String JOHNZON_SUPPORT_COMMENTS = "org.apache.johnzon.supports-comments";
@@ -83,7 +78,8 @@ public class JSONContentParser implements ContentParser {
             jsonReaderFactoryConfiguration = Collections.emptyMap();
         }
         final JsonReaderFactory jsonReaderFactory = Json.createReaderFactory(jsonReaderFactoryConfiguration);
-        JsonObject jsonObject = jsonQuoteTicks ? toJsonObjectWithJsonTicks(jsonReaderFactory, is) : toJsonObject(jsonReaderFactory, is);
+        JsonObject jsonObject =
+                jsonQuoteTicks ? toJsonObjectWithJsonTicks(jsonReaderFactory, is) : toJsonObject(jsonReaderFactory, is);
         parse(handler, jsonObject, parserOptions, "/");
     }
 
@@ -95,7 +91,8 @@ public class JSONContentParser implements ContentParser {
         }
     }
 
-    private JsonObject toJsonObjectWithJsonTicks(JsonReaderFactory jsonReaderFactory, InputStream is) throws IOException {
+    private JsonObject toJsonObjectWithJsonTicks(JsonReaderFactory jsonReaderFactory, InputStream is)
+            throws IOException {
         String jsonString = IOUtils.toString(is, StandardCharsets.UTF_8);
 
         // convert ticks to double quotes
@@ -108,7 +105,8 @@ public class JSONContentParser implements ContentParser {
         }
     }
 
-    private void parse(ContentHandler handler, JsonObject object, ParserOptions parserOptions, String path) throws IOException {
+    private void parse(ContentHandler handler, JsonObject object, ParserOptions parserOptions, String path)
+            throws IOException {
         // parse JSON object
         Map<String, Object> properties = new HashMap<>();
         Map<String, JsonObject> children = new LinkedHashMap<>();
@@ -119,8 +117,11 @@ public class JSONContentParser implements ContentParser {
             try {
                 value = convertValue(parserOptions, entry.getValue());
             } catch (IllegalArgumentException ex) {
-                if (parserOptions.getIgnoreResourceNames().contains(childName) || parserOptions.getIgnorePropertyNames()
-                        .contains(removePrefixFromPropertyName(parserOptions.getRemovePropertyNamePrefixes(), childName))) {
+                if (parserOptions.getIgnoreResourceNames().contains(childName)
+                        || parserOptions
+                                .getIgnorePropertyNames()
+                                .contains(removePrefixFromPropertyName(
+                                        parserOptions.getRemovePropertyNamePrefixes(), childName))) {
                     ignore = true;
                 } else {
                     throw new IOException(ex);
@@ -136,7 +137,6 @@ public class JSONContentParser implements ContentParser {
                             childName = childName.substring(prefix.length());
                             break;
                         }
-
                     }
                     ignore = parserOptions.getIgnorePropertyNames().contains(childName);
                 }
@@ -210,6 +210,4 @@ public class JSONContentParser implements ContentParser {
         }
         return propertyName;
     }
-
-
 }
