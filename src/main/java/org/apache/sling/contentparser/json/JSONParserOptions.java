@@ -19,7 +19,6 @@
 package org.apache.sling.contentparser.json;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -36,8 +35,7 @@ public final class JSONParserOptions extends ParserOptions {
     /**
      * List of JSON parser features activated by default.
      */
-    public static final Set<JSONParserFeature> DEFAULT_JSON_PARSER_FEATURES =
-            Collections.unmodifiableSet(EnumSet.of(JSONParserFeature.COMMENTS));
+    public static final Set<JSONParserFeature> DEFAULT_JSON_PARSER_FEATURES = Set.of(JSONParserFeature.COMMENTS);
 
     private Set<JSONParserFeature> features = DEFAULT_JSON_PARSER_FEATURES;
 
@@ -70,6 +68,6 @@ public final class JSONParserOptions extends ParserOptions {
      * @return the features the JSON parser should apply when parsing files
      */
     public Set<JSONParserFeature> getFeatures() {
-        return EnumSet.copyOf(features);
+        return Set.copyOf(features);
     }
 }
